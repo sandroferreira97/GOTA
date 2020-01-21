@@ -1,0 +1,32 @@
+import processing.io.*;
+import mqtt.*;
+
+MQTTClient client;
+int c = 0;
+int t = 0;
+
+void setup(){
+	
+	client = new MQTTClient(this);
+	client.connect("mqtt://try:try@broker.shiftr.io", "processing");
+	client.subscribe("/gota");
+
+	GPIO.pinMode(27, GPIO.INPUT);
+}
+
+void draw(){
+	
+	if(GPIO.digitalRead(27) != 0){
+		t++;
+		if(t>5){
+			client.publish("/gota", "teste");
+			println(GPIO.digitalRead(27));
+			t=0;
+		}
+	}
+
+}
+
+void messageReceived(String topic, byte[] payload){
+
+}

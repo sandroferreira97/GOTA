@@ -1,0 +1,348 @@
+import mqtt.*;
+
+MQTTClient client;
+PImage fishImage, algas, flor, caranguejo, espinha, rock, vento;
+
+boolean modeSingle=true;
+float water = 100;
+float waterG=100;
+float earthlvl=60000;
+float mediaInd = 1.25;
+float mediaGlob = 0.75;
+Ocean ocean = new Ocean(water);
+Earth earth = new Earth(earthlvl);
+ArrayList<Fish> fish=new ArrayList();
+
+void setup() {
+  
+  
+  client = new MQTTClient(this);
+  client.connect("mqtt://try:try@broker.shiftr.io", "processing");
+  client.subscribe("/gota");
+  
+  
+  
+  size(300, 600);
+
+  for (int i=0; i<1; i++) {  
+    int x=int(random(width/5, width-50)); 
+    int y=int(random(height/5, height-50)); 
+    fish.add(new Fish(x, y));
+  }
+  println(fish.size());
+  fishImage=loadImage("fish.png"); 
+  algas=loadImage("seaweed1.png");
+  flor=loadImage("flor.png"); 
+  caranguejo=loadImage("caranguejo.png"); 
+  espinha=loadImage("espinha.png");
+  vento=loadImage("vento.png");
+  rock=loadImage("rock.png");
+   
+}
+void draw() {
+  boolean x1=true;
+  boolean x2=true;
+  boolean x3=true;
+  boolean x4=false;
+  boolean x5=false;
+  boolean x6=false;
+  int altura=500;
+  
+  background(#b0e9f7);
+  //background(sky);
+  
+  
+ if(modeSingle){
+   ocean.change(water);
+   if(water>600){
+     x1=false;
+     x2=false;
+     x3=false;
+     
+     fish=new ArrayList();
+     float x=(600-(water-600)); 
+     if((600-(water-600))<50){
+       x=50;
+     }
+     
+     if(x < 225 ){
+       x4=true;
+       x5=true;
+       x6=true;
+      
+     }
+     if(x < 350){
+       x4=true;
+       x5=true;
+    
+     }
+     if(x < 475){
+       x4=true;
+       altura=(int)x;
+     }
+     earth.change(x);
+     earth.display();
+   }else{
+     x4=false;
+     x5=false;
+     x6=false;
+     if( water > 225 ){
+       System.out.println("Entrou");
+       x1=false;
+       x2=true;
+       x3=true;
+     }
+     if(water > 350){
+       x1=false;
+       x2=false;
+       x3=true;
+     }
+     if(water > 475){
+       x1=false;
+       x2=false;
+       x3=false;
+     }
+     earth.change(5000);;
+     earth.display();
+   }
+ }else{
+   ocean.change(waterG); 
+   if(waterG>600){
+     x1=false;
+     x2=false;
+     x3=false;
+     fish=new ArrayList();
+     float x=(600-(waterG-600)); 
+     if((600-(waterG-600))<50){
+       x=50;
+     }
+     if(x > 225 ){
+       x4=true;
+       x5=true;
+       x6=true;
+     }
+     if(x > 350){
+       x4=true;
+       x5=true;
+       x6=false;
+     }
+     if(x > 475){
+       x4=true;
+       x5=false;
+       x6=false;
+       altura=(int)x;
+     }
+     earth.change(x);
+     earth.display();
+   }else{
+     x4=false;
+     x5=false;
+     x6=false;
+     if( waterG > 225 ){
+       x1=false;
+       x2=true;
+       x3=true;
+      
+     }
+     if(waterG > 350){
+       x1=false;
+       x2=false;
+       x3=true;
+     }
+     if(waterG > 475){
+       x1=false;
+       x2=false;
+       x3=false;
+     }
+     earth.change(5000);
+     earth.display();
+   }
+ }
+ ocean.display();
+ System.out.println("vals");
+ System.out.println(x1);
+System.out.println(x2);
+System.out.println(x3);
+ if(x1){
+   image(flor, 170, 300, width/2, height/5);
+ }
+ if(x2){
+   image(algas, 70, 470, width/2, height/4);
+ }
+ if(x3){
+   image(caranguejo, 145, 530, width/5, height/10);
+ }
+ 
+if(x4){
+     image(vento, 140, altura-(height/5)+50, width/3, height/8);
+ }
+ if(x5){
+   image(rock, 140, 540, width/5, height/10);
+ }
+ if(x6){
+   image(espinha, 140, 300, width/4, height/9);
+ }
+  
+  
+  earth= new Earth(earthlvl);
+  earth.display();
+
+  for (int i=0; i<fish.size (); i++) {
+    fish.get(i).display(); //displays fish
+    fish.get(i).moveX(); //initializes x stuff
+    fish.get(i).moveY(); //initializes y stuff
+  }
+}
+
+void mousePressed(){
+ if(modeSingle){
+     redraw(5,waterG);      
+    }else{
+     redraw(1,water);
+    }
+    
+ modeSingle=!modeSingle;
+}
+
+void redraw(int number,float nivel){
+  fish=new ArrayList();
+  for (int i=0; i<number; i++) {  
+    int x=int(random(width/5, width-50)); 
+    int y=int(random(height/5, height-50));
+    if(y<nivel){
+      y=(int)nivel+20; 
+    }
+    fish.add(new Fish(x, y));
+  }
+    
+    background(#b0e9f7);
+  //background(sky);
+  
+  
+  ocean = new Ocean(nivel);
+  ocean.display();
+  
+  earth = new Earth(earthlvl);
+  earth.display();
+
+  for (int j=0; j<fish.size (); j++) {
+    fish.get(j).display(); //displays fish
+    fish.get(j).moveX(); //initializes x stuff
+    fish.get(j).moveY(); //initializes y stuff
+  }
+  
+}
+
+class Ocean {
+  private float l;
+  public Ocean(float level) {
+    l = level;
+  }
+  void change(float nivel){
+     l=nivel; 
+  }
+  void display() {
+    fill(#2997cf);
+    rect(0, l, width, height);
+  }
+}
+
+class Earth {
+  private float l;
+  public Earth(float level) {
+    l = level;
+  }
+  void change(float nivel){
+     l=nivel; 
+  }
+  void display() {
+    fill(#fbceb1);
+    rect(0, l, width, height+500);
+  }
+}
+
+
+class Fish {
+  private float x, y;
+  private float speedX=.5;
+  private float speedY=.5; 
+  int requestx=int(random(50, width-50)); //requests new xposition
+  int requesty=int(random(50, height-100)); //requests new y position 
+  public Fish(float xpos, float ypos) {
+    x=xpos;
+    y=ypos;
+  }
+  void display() {//displays fish  
+
+    fill(#2997cf);
+    stroke(#15D3D2);
+    ellipse(x-15, y-5, 5, 5);
+    ellipse(x-20, y-20, 5, 5);
+    ellipse(x+5, y-45, 5, 5);
+
+    if (y-5<water) {
+      fill(#b0e9f7);
+      stroke(#b0e9f7);
+      ellipse(x-15, y-5, 5, 5);
+    }
+    if (y-20<water) {
+      fill(#b0e9f7);
+      stroke(#b0e9f7);
+      ellipse(x-20, y-20, 5, 5);
+    }
+    if (y-45<water) {
+      fill(#b0e9f7);
+      stroke(#b0e9f7);
+      ellipse(x+5, y-45, 5, 5);
+    } 
+
+    image(fishImage, x, y, width/5, height/10);
+  }
+  void moveX() {  //moves the x pos of fish
+    if (x==requestx)
+      requestx=int(random(width));
+    if (x<requestx) {
+      x+=speedX;
+    } else if (x>=requestx) {
+      x-=speedX;
+    } else if (x==requestx) {
+      requestx=int(random(width));
+    }
+  }
+  void moveY() { //moves y pos of fish
+    if (y==requesty)
+      requesty=int(random(height));
+    if (y<requesty) {
+      y+=speedY;
+    } else if (y>=requesty) {
+      y-=speedY;
+    } else if (y==requesty) {
+      requesty=int(random(height));
+    }
+
+    if (y < water) {
+      requesty=int(random(height)); 
+      y+=speedY;
+    }
+  }
+}
+
+void keyPressed() {
+  if (keyCode == DOWN){
+    water+=mediaInd;
+    waterG+=mediaGlob;
+    if(earthlvl>0){
+     earthlvl--; 
+    }
+    earthlvl--;
+  }else{
+    client.publish("/gota", "world");
+  }
+}
+
+void messageReceived(String topic, byte[] payload) {
+  water++;
+  water+=mediaInd;
+  waterG+=mediaGlob;
+  println("new message: " + topic + " - " + new String(payload));
+}
